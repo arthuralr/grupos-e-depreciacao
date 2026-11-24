@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { examples, maxTermLength, type Classification, type NormativeExcerpt } from '@/lib/classification';
 import { consultNorms } from '@/lib/gemini';
+import { benchmarkClasses } from '@/lib/depreciation';
 import { getSupabase } from '@/lib/supabase';
 
 export const maxDuration = 45;
@@ -14,8 +15,10 @@ function isExcerpt(value: unknown): value is NormativeExcerpt {
 }
 
 export async function POST(request: Request) {
-  const body: { termo?: unknown } | null = await request.json().catch(() => null);
+  const body: { termo?: unknown; grupo?: unknown } | null = await request.json().catch(() => null);
   const term = typeof body?.termo === 'string' ? body.termo.trim() : '';
+
+  const group = typeof body?.grupo === 'string' ? body.grupo.trim().slice(0, 120) : '';
 
   if (!term || term.length > maxTermLength) {
     return NextResponse.json({ error: `Informe uma descrição com até ${maxTermLength} caracteres.` }, { status: 400 });
@@ -28,6 +31,7 @@ export async function POST(request: Request) {
       framing: 'Possível bem móvel do ativo imobilizado',
       group: example.group,
       species: example.species,
+      benchmark: benchmarkClasses[example.benchmark],
       depreciation: 'entity',
       reason: 'Exemplo ilustrativo para uso institucional. A consulta às fontes oficiais está disponível no modo real.',
       references: [],
@@ -54,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      return NextResponse.json(await consultNorms(term, excerpts));
+      return NextResponse.json(await consultNorms(term, excerpts, group));
     } catch (error) {
       console.error('Falha na análise da IA', error instanceof Error ? error.message : 'Erro desconhecido');
       return NextResponse.json<Classification>({

@@ -25,7 +25,7 @@ export default function HomePage() {
 
       <details id="como-funciona" className="help">
         <summary><CircleHelp size={19} aria-hidden="true" /> Como funciona a classificação?</summary>
-        <p>A análise usa referências oficiais da base normativa. Grupo e espécie são sugestões. Quando a depreciação se aplica, cabe à entidade estimar a vida útil e o valor residual.</p>
+        <p>A análise usa referências oficiais da base normativa. Grupo e espécie são sugestões. Para bens com classe comparável, a consulta mostra uma estimativa de vida útil, residual e depreciação linear. Confira os parâmetros com o órgão antes de cadastrar.</p>
       </details>
     </>
   );

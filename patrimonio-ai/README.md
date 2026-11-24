@@ -75,8 +75,7 @@ NBC TSP 37 a partir de 2027. Prazos específicos exigem ajuste das referências.
 Os registros têm URL oficial, seção, resumo e período de validade. A base
 inicial é revisada por atualização do SQL, sem importação automática de
 novas edições. Quando a base não sustenta uma classificação, a interface pode
-pedir detalhes ou sinalizar revisão. Vida útil e valor residual aparecem como
-parâmetros a definir pela entidade, inaplicáveis ou a avaliar. Com a Groq configurada, a análise tem um limite de 10 segundos. No fluxo Gemini, a API repete uma vez em caso de 503 ou tempo limite. Se a análise permanecer indisponível, a tela exibe as fontes
+pedir detalhes ou sinalizar revisão. Quando há uma classe comparável na tabela da CAGE/RS, a tela mostra vida útil e residual de referência. A depreciação anual linear corresponde a 100% dividido pela vida útil e incide sobre o valor depreciável. O valor de aquisição opcional é usado no navegador para calcular o residual, a base depreciável e a despesa anual em reais. O grupo informado é enviado como contexto. Use a política do órgão para homologar os parâmetros. Com a Groq configurada, a análise tem um limite de 10 segundos. No fluxo Gemini, a API repete uma vez em caso de 503 ou tempo limite. Se a análise permanecer indisponível, a tela exibe as fontes
 recuperadas com seus resumos e sinaliza a ausência de classificação. A consulta
 não registra histórico no banco.
 
