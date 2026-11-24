@@ -1,53 +1,84 @@
 # Patrimônio AI
 
-Assistente de classificação de bens patrimoniais. O Gemini indica uma espécie compatível com a descrição. O grupo, a vida útil e o percentual residual exibidos vêm do catálogo do Supabase. Consultas classificadas são gravadas no histórico. A sugestão deve ser conferida antes do cadastro.
+Assistente de consulta patrimonial para o setor público. A API recupera referências
+aplicáveis à data da consulta no Supabase e envia os resumos ao Gemini para
+interpretar a descrição. A interface apresenta enquadramento provável, grupo e
+espécie sugeridos, orientação sobre depreciação e links oficiais.
 
-## Testar no computador
+## Testar localmente
 
-Instale o Node.js 24. Abra o terminal na pasta que contém o `package.json` e rode:
+Com Node.js 24, abra o terminal nesta pasta e execute:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Abra [localhost:3000](http://localhost:3000) e clique em um dos exemplos. Por padrão, o aplicativo abre em demonstração com dados fictícios, sem depender de serviços externos. Para verificar a versão de produção, execute `npm run build`.
+Acesse [localhost:3000](http://localhost:3000). Sem variáveis configuradas, o
+aplicativo abre em demonstração, com exemplos ilustrativos. Para verificar a
+compilação de produção, execute `npm run build`.
 
-## Preparar o catálogo real
+## Ativar a consulta real
 
-1. Em um projeto Supabase novo, abra **SQL Editor** e execute [supabase/schema.sql](supabase/schema.sql). Se você já tem as tabelas, confira a estrutura e as permissões antes de aplicar o script. Ele restringe o acesso direto pelo navegador. Use um projeto dedicado se as mesmas tabelas atendem a outros aplicativos.
-2. No **Table Editor**, insira seus grupos em `grupos_patrimonio`. Insira suas espécies em `especies_patrimonio` e preencha `grupo_id` com o ID do grupo correspondente. Use os parâmetros da tabela patrimonial da entidade. Deixe em branco os parâmetros ainda indefinidos.
-3. Copie `.env.example` para `.env.local` para testar o catálogo real no computador. Configure as variáveis abaixo. Mantenha os valores reais fora do Git.
+1. No Supabase, abra **SQL Editor → New query**. Cole e execute todo o
+   arquivo [supabase/schema.sql](supabase/schema.sql). Ele cria a base de
+   referências, instala a busca e inclui um conjunto inicial de sínteses do
+   MCASP e das NBC TSP sobre imobilizado. Pode ser executado novamente.
+2. No seu projeto existente na Vercel, acesse **Settings → Environment
+   Variables**, selecione **Production** e configure as variáveis abaixo.
+   Para um teste no computador, copie `.env.example` para `.env.local` e
+   preencha o arquivo localmente.
+3. Envie a atualização para o mesmo repositório GitHub já conectado à
+   Vercel. Se o deploy foi criado antes de configurar as variáveis, faça
+   um **Redeploy**. Para uso interno, restrinja o acesso ao deploy para
+   controlar o consumo da API. A aplicação não implementa login próprio.
+4. Abra o site e consulte **“celular para uso da Câmara”** ou outro bem. Confira
+   se o selo de demonstração sumiu e se os links oficiais aparecem na resposta.
 
 | Variável | Valor |
 | --- | --- |
-| `APP_MODE` | `live` para consultar o catálogo real ou `demo` para a demonstração |
-| `SUPABASE_URL` | URL do projeto Supabase, como `https://seu-projeto.supabase.co` |
-| `SUPABASE_SECRET_KEY` | Chave **Secret** em **Supabase → Settings → API Keys**. A chave legada `service_role` também funciona. A chave anon ou publishable não serve para este fluxo. |
+| `APP_MODE` | `live` para consulta real ou `demo` para demonstração |
+| `SUPABASE_URL` | URL do projeto, ex.: `https://seu-projeto.supabase.co` |
+| `SUPABASE_SECRET_KEY` | Chave **Secret** nas configurações de API do Supabase. Também aceita a chave legada `service_role`. |
 | `GEMINI_API_KEY` | Chave criada no [Google AI Studio](https://aistudio.google.com/apikey) |
-| `GEMINI_MODEL` | Opcional. Por padrão, `gemini-flash-latest`. Pode ser substituído por um modelo compatível com saída estruturada disponível na sua conta. |
+| `GEMINI_MODEL` | Opcional. O padrão é `gemini-3.1-flash-lite`. Use um modelo com saída estruturada disponível na sua conta. |
 
-Ao usar uma base existente, a aplicação espera `especies_patrimonio.id`, o relacionamento de chave estrangeira com `grupos_patrimonio` e as colunas de leitura e histórico definidas no SQL. O script não altera a estrutura de tabelas existentes. O Supabase e o Gemini são chamados no servidor. No modo real, a descrição informada e os nomes de grupos e espécies seguem para o Gemini.
+Mantenha os valores reais fora do Git. No modo real, a descrição e as sínteses
+seguem para o Gemini. O plano gratuito pode usar dados enviados para melhorar
+produtos. Digite descrições de bens sem dados pessoais ou sigilosos.
 
-## Enviar ao GitHub
+## Atualizar a publicação existente
 
-Crie um repositório vazio, sem adicionar README ou .gitignore pelo GitHub, e rode os comandos na pasta do projeto. Substitua `SEU_USUARIO` pelo nome da sua conta ou organização.
+Copie o conteúdo deste pacote para a pasta local do repositório que já está
+conectado à Vercel. A pasta correta contém o `package.json`. Inclua os arquivos
+ocultos `.gitignore` e `.env.example`. No terminal, execute:
 
 ```sh
-git init
+git status
 git add .
-git status --short
-git commit -m "Preparar Patrimônio AI"
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/patrimonio-ai.git
-git push -u origin main
+git diff --cached --name-only
+git commit -m "Adicionar consulta de normas patrimoniais"
+git push
 ```
 
-## Importar na Vercel
+Confira se a lista de arquivos não inclui `.env.local` ou chaves antes de fazer
+o commit.
 
-1. Na Vercel, abra **Add New → Project**, conecte o GitHub e clique em **Import** no repositório.
-2. Use o preset **Next.js**, a raiz que contém o `package.json` e Node.js 24. A Vercel detecta o comando de build.
-3. Para publicar a demonstração, clique em **Deploy**. Para conectar o catálogo real, preencha **Environment Variables** com as variáveis da tabela e configure `APP_MODE=live`. Se alterar variáveis após publicar, gere um novo deploy.
-4. Para uso interno com dados reais, restrinja o acesso ao deploy antes de liberar o link. A aplicação não implementa login próprio, e a API de classificação consome a cota do Gemini. Depois, teste uma espécie do seu catálogo e confirme o registro em `consultas_patrimonio`.
+## Escopo e atualização da base
 
-Referências oficiais: [Next.js](https://nextjs.org/support-policy), [variáveis na Vercel](https://vercel.com/docs/environment-variables/managing-environment-variables) e [chaves do Supabase](https://supabase.com/docs/guides/getting-started/api-keys).
+Esta versão cobre principalmente reconhecimento de imobilizado, distinção
+orçamentária entre consumo e permanente, reposição de componentes e
+depreciação. Normas locais podem ser adicionadas após identificar a entidade
+e o seu escopo. O calendário federal inicial considera a aplicação geral da
+NBC TSP 37 a partir de 2027. Prazos específicos exigem ajuste das referências.
+
+Os registros têm URL oficial, seção, resumo e período de validade. A base
+inicial é revisada por atualização do SQL, sem importação automática de
+novas edições. Quando a base não sustenta uma classificação, a interface pode
+pedir detalhes ou sinalizar revisão. Vida útil e valor residual aparecem como
+parâmetros a definir pela entidade, inaplicáveis ou a avaliar. A consulta não
+registra histórico no banco.
+
+Fontes: [MCASP](https://www.gov.br/tesouronacional/pt-br/contabilidade-e-custos/manuais/manual-de-contabilidade-aplicada-ao-setor-publico-mcasp-1),
+[NBC TSP](https://cfc.org.br/tecnica/normas-brasileiras-de-contabilidade/nbc-tsp-do-setor-publico/)
+e [preços da API Gemini](https://ai.google.dev/gemini-api/docs/pricing).

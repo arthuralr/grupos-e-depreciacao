@@ -50,7 +50,7 @@ export default function SearchBar({ demo }: { demo: boolean }) {
       <section className="search-panel" aria-labelledby="search-title">
         <div className="panel-heading">
           <h2 id="search-title">Consultar um bem</h2>
-          {demo && <span className="demo"><FlaskConical size={15} aria-hidden="true" /> Demonstração · dados fictícios</span>}
+          {demo && <span className="demo"><FlaskConical size={15} aria-hidden="true" /> Demonstração · exemplos ilustrativos</span>}
         </div>
         <form onSubmit={submit}>
           <label htmlFor="description">Descrição do bem</label>
@@ -84,7 +84,7 @@ export default function SearchBar({ demo }: { demo: boolean }) {
       </section>
 
       <div aria-live="polite" aria-atomic="true">
-        {loading && <p className="status">Buscando uma espécie compatível…</p>}
+        {loading && <p className="status">Consultando a fundamentação…</p>}
         {error && <p className="status error" role="alert">{error}</p>}
         {result && <ResultCard data={result} query={query} />}
       </div>

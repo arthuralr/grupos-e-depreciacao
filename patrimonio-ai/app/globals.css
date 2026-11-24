@@ -90,3 +90,10 @@ label { display: block; margin-bottom: 7px; font-weight: 650; font-size: 14px; }
 @media (max-width: 350px) {
   .result-grid { grid-template-columns: 1fr; }
 }
+
+.result-grid .framing { grid-column: 1 / -1; }
+.review-question { margin-top: 12px; }
+.references { border-top: 1px solid var(--border); margin-top: 17px; padding-top: 14px; }
+.references h3 { display: flex; align-items: center; gap: 7px; }
+.references ul { margin: 6px 0 0; padding-left: 20px; }
+.references a { color: var(--brand); text-underline-offset: 3px; }

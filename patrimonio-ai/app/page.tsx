@@ -12,7 +12,7 @@ export default function HomePage() {
         <div className="hero-copy">
           <p className="eyebrow"><span /> Gestão patrimonial</p>
           <h1 id="title">Classificação de<br className="desktop-break" /> bens patrimoniais</h1>
-          <p className="hero-description">Descreva o bem para consultar o grupo, a espécie e os parâmetros de depreciação do catálogo.</p>
+          <p className="hero-description">Descreva o bem para receber uma orientação de classificação com base nas normas contábeis do setor público.</p>
         </div>
         <div className="hero-art" aria-hidden="true">
           <div className="art-card art-back"><Database size={27} strokeWidth={1.5} /></div>
@@ -25,7 +25,7 @@ export default function HomePage() {
 
       <details id="como-funciona" className="help">
         <summary><CircleHelp size={19} aria-hidden="true" /> Como funciona a classificação?</summary>
-        <p>A descrição orienta a escolha de uma espécie. A vida útil e o percentual residual vêm do catálogo. Confira a sugestão e os parâmetros antes de cadastrar o bem.</p>
+        <p>A análise usa referências oficiais da base normativa. Grupo e espécie são sugestões. Quando a depreciação se aplica, cabe à entidade estimar a vida útil e o valor residual.</p>
       </details>
     </>
   );

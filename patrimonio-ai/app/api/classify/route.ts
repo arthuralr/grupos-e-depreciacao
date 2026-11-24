@@ -1,9 +1,17 @@
 import { NextResponse } from 'next/server';
-import { examples, maxTermLength, normalizeTerm, type Classification } from '@/lib/classification';
-import { chooseSpecies } from '@/lib/gemini';
+import { examples, maxTermLength, type Classification, type NormativeExcerpt } from '@/lib/classification';
+import { consultNorms } from '@/lib/gemini';
 import { getSupabase } from '@/lib/supabase';
 
-export const maxDuration = 60;
+export const maxDuration = 45;
+
+function isExcerpt(value: unknown): value is NormativeExcerpt {
+  if (!value || typeof value !== 'object') return false;
+  const entry = value as Record<string, unknown>;
+  return typeof entry.id === 'string' && typeof entry.document === 'string' &&
+    typeof entry.section === 'string' && typeof entry.summary === 'string' &&
+    typeof entry.url === 'string' && entry.url.startsWith('https://');
+}
 
 export async function POST(request: Request) {
   const body: { termo?: unknown } | null = await request.json().catch(() => null);
@@ -14,81 +22,40 @@ export async function POST(request: Request) {
   }
 
   if (process.env.APP_MODE !== 'live') {
-    const example = examples.find((item) => normalizeTerm(item.term) === normalizeTerm(term));
-    const result: Classification = example
-      ? {
-          status: 'matched',
-          group: example.group,
-          species: example.species,
-          life: example.life,
-          residual: example.residual,
-          reason: 'Este exemplo usa uma espécie e parâmetros fictícios para demonstrar a tela de resultado.',
-        }
-      : { status: 'review', reason: 'Use uma das sugestões da tela para consultar o catálogo demonstrativo.' };
-    return NextResponse.json(result);
+    const example = examples.find((item) => item.term.toLowerCase() === term.toLowerCase());
+    return NextResponse.json<Classification>(example ? {
+      status: 'answered',
+      framing: 'Possível bem móvel do ativo imobilizado',
+      group: example.group,
+      species: example.species,
+      depreciation: 'entity',
+      reason: 'Exemplo ilustrativo para uso institucional. A consulta às fontes oficiais está disponível no modo real.',
+      references: [],
+    } : {
+      status: 'review',
+      reason: 'Escolha um dos exemplos para ver como a resposta é apresentada no modo de demonstração.',
+      references: [],
+    });
   }
 
   try {
     const supabase = getSupabase();
-    const pageSize = 250;
-    const catalog = [];
-    for (let offset = 0; ;) {
-      const { data, error } = await supabase.from('especies_patrimonio')
-        .select('nome, vida_util_anos, valor_residual_percentual, grupos_patrimonio!inner(nome)')
-        .order('id')
-        .range(offset, offset + pageSize - 1)
-        .overrideTypes<Array<{
-          nome: string;
-          vida_util_anos: number | null;
-          valor_residual_percentual: number | null;
-          grupos_patrimonio: { nome: string };
-        }>, { merge: false }>();
+    const { data: excerpts, error } = await supabase
+      .rpc('buscar_trechos_normativos', { descricao: term });
 
-      if (error) throw new Error(`Erro no catálogo (${error.code})`);
-      catalog.push(...data);
-      if (data.length === 0) break;
-      // Alguns projetos configuram um limite por resposta inferior ao tamanho da página.
-      offset += data.length;
+    if (error) throw new Error(`Falha na busca normativa (${error.code})`);
+
+    if (!Array.isArray(excerpts) || !excerpts.every(isExcerpt)) {
+      throw new Error('Resposta da busca normativa fora do formato esperado');
     }
 
-    if (catalog.length === 0) {
-      return NextResponse.json({ error: 'O catálogo está vazio. Cadastre os grupos e as espécies para começar.' }, { status: 503 });
+    if (excerpts.length === 0) {
+      return NextResponse.json({ error: 'A base normativa está sem referências disponíveis para a data atual.' }, { status: 503 });
     }
 
-    const candidates = catalog.map((item) => ({
-      group: item.grupos_patrimonio.nome,
-      species: item.nome,
-    }));
-    const choice = await chooseSpecies(term, candidates);
-    if (choice.index === -1) {
-      return NextResponse.json<Classification>({ status: 'review', reason: choice.reason });
-    }
-
-    const selected = catalog[choice.index];
-    const result: Classification = {
-      status: 'matched',
-      ...candidates[choice.index],
-      life: selected.vida_util_anos,
-      residual: selected.valor_residual_percentual,
-      reason: choice.reason,
-    };
-
-    const { error: auditError } = await supabase.from('consultas_patrimonio').insert({
-      termo_pesquisado: term,
-      grupo_sugerido: result.group,
-      especie_sugerida: result.species,
-      vida_util_sugerida: result.life,
-      valor_residual_sugerido: result.residual,
-    });
-
-    if (auditError) {
-      console.error('Falha no histórico de classificação', auditError.code);
-      result.auditWarning = true;
-    }
-
-    return NextResponse.json(result);
+    return NextResponse.json(await consultNorms(term, excerpts));
   } catch (error) {
-    console.error('Falha na classificação', error instanceof Error ? error.message : 'Erro desconhecido');
+    console.error('Falha na consulta normativa', error instanceof Error ? error.message : 'Erro desconhecido');
     return NextResponse.json({ error: 'A consulta está indisponível no momento. Tente novamente em instantes.' }, { status: 502 });
   }
 }

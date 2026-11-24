@@ -4,7 +4,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Patrimônio AI | Consulta patrimonial',
-  description: 'Assistente para consultar grupos, espécies e parâmetros de bens patrimoniais.',
+  description: 'Assistente para consultar o enquadramento de bens patrimoniais com fundamentação contábil.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
