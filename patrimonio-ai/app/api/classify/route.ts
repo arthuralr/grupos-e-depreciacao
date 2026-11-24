@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     try {
       return NextResponse.json(await consultNorms(term, excerpts));
     } catch (error) {
-      console.error('Falha na análise Gemini', error instanceof Error ? error.message : 'Erro desconhecido');
+      console.error('Falha na análise da IA', error instanceof Error ? error.message : 'Erro desconhecido');
       return NextResponse.json<Classification>({
         status: 'sources_only',
         reason: 'A classificação automática está indisponível. Você pode consultar as referências recuperadas abaixo enquanto isso.',

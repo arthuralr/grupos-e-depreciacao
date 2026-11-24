@@ -1,7 +1,7 @@
 # Patrimônio AI
 
 Assistente de consulta patrimonial para o setor público. A API recupera referências
-aplicáveis à data da consulta no Supabase e envia os resumos ao Gemini para
+aplicáveis à data da consulta no Supabase e envia os resumos ao provedor de IA para
 interpretar a descrição. A interface apresenta enquadramento provável, grupo e
 espécie sugeridos, orientação sobre depreciação e links oficiais.
 
@@ -40,12 +40,12 @@ compilação de produção, execute `npm run build`.
 | `APP_MODE` | `live` para consulta real ou `demo` para demonstração |
 | `SUPABASE_URL` | URL do projeto, ex.: `https://seu-projeto.supabase.co` |
 | `SUPABASE_SECRET_KEY` | Chave **Secret** nas configurações de API do Supabase. Também aceita a chave legada `service_role`. |
-| `GEMINI_API_KEY` | Chave criada no [Google AI Studio](https://aistudio.google.com/apikey) |
+| `GROQ_API_KEY` | Chave criada no [console da Groq](https://console.groq.com/keys). Quando preenchida, usa o modelo `openai/gpt-oss-20b` para a análise. |
+| `GEMINI_API_KEY` | Usada quando `GROQ_API_KEY` está vazia. Chave criada no [Google AI Studio](https://aistudio.google.com/apikey) |
 | `GEMINI_MODEL` | Opcional. O padrão é `gemini-3.1-flash-lite`. Use um modelo com saída estruturada disponível na sua conta. |
 
 Mantenha os valores reais fora do Git. No modo real, a descrição e as sínteses
-seguem para o Gemini. O plano gratuito pode usar dados enviados para melhorar
-produtos. Digite descrições de bens sem dados pessoais ou sigilosos.
+seguem para o provedor configurado. Digite descrições de bens sem dados pessoais ou sigilosos.
 
 ## Atualizar a publicação existente
 
@@ -76,8 +76,7 @@ Os registros têm URL oficial, seção, resumo e período de validade. A base
 inicial é revisada por atualização do SQL, sem importação automática de
 novas edições. Quando a base não sustenta uma classificação, a interface pode
 pedir detalhes ou sinalizar revisão. Vida útil e valor residual aparecem como
-parâmetros a definir pela entidade, inaplicáveis ou a avaliar. Se o Gemini retornar 503 ou atingir o tempo limite, a API faz uma nova
-tentativa. Se a análise permanecer indisponível, a tela exibe as fontes
+parâmetros a definir pela entidade, inaplicáveis ou a avaliar. Com a Groq configurada, a análise tem um limite de 10 segundos. No fluxo Gemini, a API repete uma vez em caso de 503 ou tempo limite. Se a análise permanecer indisponível, a tela exibe as fontes
 recuperadas com seus resumos e sinaliza a ausência de classificação. A consulta
 não registra histórico no banco.
 
