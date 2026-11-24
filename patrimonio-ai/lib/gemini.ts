@@ -24,12 +24,12 @@ export async function consultNorms(term: string, excerpts: NormativeExcerpt[]): 
   const model = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
   if (!apiKey) throw new Error('Chave do Gemini ausente');
 
-  const response = await fetch(
+  const request = () => fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      signal: AbortSignal.timeout(18000),
+      signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: [
           'Você auxilia a classificação contábil patrimonial do setor público brasileiro em português brasileiro.',
@@ -48,7 +48,19 @@ export async function consultNorms(term: string, excerpts: NormativeExcerpt[]): 
     },
   );
 
-  if (!response.ok) throw new Error(`Gemini respondeu com status ${response.status}`);
+  const firstResponse = await request().catch((error: unknown) => {
+    if (error instanceof Error && error.name === 'TimeoutError') return null;
+    throw error;
+  });
+  let response = firstResponse;
+  if (!firstResponse || firstResponse.status === 503) {
+    await firstResponse?.body?.cancel();
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    response = await request();
+  }
+  if (!response) throw new Error('Gemini não respondeu dentro do prazo');
+
+  if (!response.ok) throw new Error(`Gemini (${model}) respondeu com status ${response.status}`);
 
   const payload = await response.json();
   const parts: Array<{ text?: string; thought?: boolean }> = payload.candidates?.[0]?.content?.parts ?? [];

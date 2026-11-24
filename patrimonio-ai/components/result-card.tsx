@@ -9,13 +9,14 @@ const depreciationLabels = {
 
 export default function ResultCard({ data, query }: { data: Classification; query: string }) {
   const answered = data.status === 'answered';
+  const sourcesOnly = data.status === 'sources_only';
   const parameters = depreciationLabels[data.depreciation ?? 'uncertain'];
 
   return (
     <section className="result">
       <h2>
         {answered ? <CircleCheck size={22} aria-hidden="true" /> : <CircleHelp size={22} aria-hidden="true" />}
-        {answered ? 'Orientação patrimonial' : 'Consulta precisa de revisão'}
+        {answered ? 'Orientação patrimonial' : sourcesOnly ? 'Referências disponíveis' : 'Consulta precisa de revisão'}
       </h2>
       <p className="query">{query}</p>
       {answered && (
@@ -32,12 +33,12 @@ export default function ResultCard({ data, query }: { data: Classification; quer
       {data.question && <p className="review-question"><strong>Para refazer a consulta:</strong> {data.question}</p>}
       {data.references.length > 0 && (
         <div className="references">
-          <h3><FileText size={16} aria-hidden="true" /> Fundamentação</h3>
+          <h3><FileText size={16} aria-hidden="true" /> {sourcesOnly ? 'Fontes para consulta' : 'Fundamentação'}</h3>
           <ul>
             {data.references.map((reference) => (
               <li key={reference.id}><a href={reference.url} target="_blank" rel="noreferrer">
                 {reference.document} · {reference.section}
-              </a></li>
+              </a>{reference.summary && <p>{reference.summary}</p>}</li>
             ))}
           </ul>
         </div>

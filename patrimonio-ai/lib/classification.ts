@@ -10,9 +10,9 @@ export type Reference = { id: string; document: string; section: string; url: st
 export type NormativeExcerpt = Reference & { summary: string };
 
 export type Classification = {
-  status: 'answered' | 'review';
+  status: 'answered' | 'review' | 'sources_only';
   reason: string;
-  references: Reference[];
+  references: Array<Reference & { summary?: string }>;
   group?: string;
   species?: string;
   framing?: string;

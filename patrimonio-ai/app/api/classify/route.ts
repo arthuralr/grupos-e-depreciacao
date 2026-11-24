@@ -53,7 +53,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'A base normativa está sem referências disponíveis para a data atual.' }, { status: 503 });
     }
 
-    return NextResponse.json(await consultNorms(term, excerpts));
+    try {
+      return NextResponse.json(await consultNorms(term, excerpts));
+    } catch (error) {
+      console.error('Falha na análise Gemini', error instanceof Error ? error.message : 'Erro desconhecido');
+      return NextResponse.json<Classification>({
+        status: 'sources_only',
+        reason: 'A classificação automática está indisponível. Você pode consultar as referências recuperadas abaixo enquanto isso.',
+        references: excerpts,
+      });
+    }
   } catch (error) {
     console.error('Falha na consulta normativa', error instanceof Error ? error.message : 'Erro desconhecido');
     return NextResponse.json({ error: 'A consulta está indisponível no momento. Tente novamente em instantes.' }, { status: 502 });

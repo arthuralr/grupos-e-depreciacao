@@ -76,8 +76,10 @@ Os registros têm URL oficial, seção, resumo e período de validade. A base
 inicial é revisada por atualização do SQL, sem importação automática de
 novas edições. Quando a base não sustenta uma classificação, a interface pode
 pedir detalhes ou sinalizar revisão. Vida útil e valor residual aparecem como
-parâmetros a definir pela entidade, inaplicáveis ou a avaliar. A consulta não
-registra histórico no banco.
+parâmetros a definir pela entidade, inaplicáveis ou a avaliar. Se o Gemini retornar 503 ou atingir o tempo limite, a API faz uma nova
+tentativa. Se a análise permanecer indisponível, a tela exibe as fontes
+recuperadas com seus resumos e sinaliza a ausência de classificação. A consulta
+não registra histórico no banco.
 
 Fontes: [MCASP](https://www.gov.br/tesouronacional/pt-br/contabilidade-e-custos/manuais/manual-de-contabilidade-aplicada-ao-setor-publico-mcasp-1),
 [NBC TSP](https://cfc.org.br/tecnica/normas-brasileiras-de-contabilidade/nbc-tsp-do-setor-publico/)
